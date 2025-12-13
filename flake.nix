@@ -118,7 +118,7 @@
             nodes = {
               host = {
                 environment.systemPackages = [
-                  self.packages.default
+                  self.packages.${system}.default
                 ];
 
                 virtualisation.vlans = [1];
@@ -132,7 +132,7 @@
 
               vm = {pkgs, ...}: {
                 environment.systemPackages = [
-                  self.packages.default
+                  self.packages.${system}.default
                 ];
 
                 services.openssh = {
@@ -197,6 +197,7 @@
             testScript = ''
               start_all()
               db.wait_for_unit("oracle-database-container.target")
+              vm.succeed("test-script")
             '';
           };
         };
