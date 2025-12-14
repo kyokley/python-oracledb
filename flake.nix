@@ -84,6 +84,8 @@
           src = builtins.fetchGit {
             url = ./.;
             submodules = true;
+            rev = "9d858a3f1f642831af722bdc48b22c0be122b8a3";
+            allRefs = true;
           };
 
           nativeBuildInputs = [pkgs.makeWrapper];
