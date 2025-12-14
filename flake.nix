@@ -81,10 +81,13 @@
         packages.default = pkgs.stdenv.mkDerivation {
           pname = thisProjectAsNixPkg.pname;
           version = thisProjectAsNixPkg.version;
-          src = ./.; # Source of your main script
+          src = builtins.fetchGit {
+            url = ./.;
+            submodules = true;
+          };
 
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          buildInputs = [ appPythonEnv ]; # Runtime Python environment
+          nativeBuildInputs = [pkgs.makeWrapper];
+          buildInputs = [appPythonEnv]; # Runtime Python environment
 
           installPhase = ''
             mkdir -p $out/bin
