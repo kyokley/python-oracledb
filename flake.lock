@@ -150,21 +150,7 @@
         "nixpkgs": "nixpkgs_2",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
-        "src": "src",
         "uv2nix": "uv2nix_2"
-      }
-    },
-    "src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 0,
-        "narHash": "sha256-kI9fl4pvwhaQ4pvUJOP0dE3NUy1rZqf6vXwSGgijYok=",
-        "path": "/nix/store/r29njvd11wv3vg0hvfhh8yv6j70bmpw4-source",
-        "type": "path"
-      },
-      "original": {
-        "path": "/nix/store/r29njvd11wv3vg0hvfhh8yv6j70bmpw4-source",
-        "type": "path"
       }
     },
     "systems": {

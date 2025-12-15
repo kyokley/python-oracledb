@@ -18,10 +18,6 @@
     pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
 
     nix-oracle-db.url = "github:drupol/nix-oracle-db";
-    src = {
-      url = ".";
-      flake = false;
-    };
   };
 
   outputs = {
@@ -32,7 +28,6 @@
     pyproject-nix,
     pyproject-build-systems,
     nix-oracle-db,
-    src,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (
@@ -86,9 +81,9 @@
         packages.default = pkgs.stdenv.mkDerivation {
           pname = thisProjectAsNixPkg.pname;
           version = thisProjectAsNixPkg.version;
-          src = src;
+          src = ./.;
           nativeBuildInputs = [pkgs.makeWrapper];
-          buildInputs = [appPythonEnv]; # Runtime Python environment
+          buildInputs = [appPythonEnv ]; # Runtime Python environment
 
           installPhase = ''
             mkdir -p $out/bin
@@ -185,8 +180,8 @@
                 services.oracle-database-container = {
                   enable = true;
                   openFirewall = true;
-                  volumeName = "oracledb";
-                  passwordFile = builtins.toFile "passwordFile" "password";
+                  passwordFile = ./password.txt;
+                  volumeName = "";
                 };
                 virtualisation.vlans = [2];
                 networking.interfaces.eth1.ipv4.addresses = [
