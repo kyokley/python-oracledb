@@ -60,13 +60,14 @@
         # 3. Placeholder for Your Custom Package Overrides
         myCustomOverrides = final: prev: {
           # Ensure the ODPI-C submodule is present at the expected path for the build
-          oracledb = prev.oracledb.overridePythonAttrs (old: {
+          oracledb = prev.oracledb.overrideAttrs (old: {
             postPatch =
               (old.postPatch or "")
               + ''
                 echo "Injecting ODPI-C sources into src/oracledb/impl/thick/odpi/src"
                 mkdir -p src/oracledb/impl/thick/odpi
-                # Link the ODPI-C 'src' directory to the expected submodule location
+                # Replace any existing entry and link the ODPI-C 'src' directory
+                rm -f src/oracledb/impl/thick/odpi/src
                 ln -s ${odpi}/src src/oracledb/impl/thick/odpi/src
               '';
           });
