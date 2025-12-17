@@ -114,6 +114,7 @@
           dbAddress = "80.100.101.2";
 
           default-vm-port = 1022;
+          default-db-port = 1521;
         in {
           moduleTest = pkgs.testers.runNixOSTest {
             name = "moduleTest";
@@ -182,7 +183,6 @@
 
                 services.oracle-database = {
                   enable = true;
-                  openFirewall = true;
                   passwordFile = ./password.txt;
                   volumeName = "";
                 };
@@ -193,6 +193,12 @@
                     prefixLength = 24;
                   }
                 ];
+                networking = {
+                  firewall = {
+                    enable = true;
+                    allowedTCPPorts = [default-db-port];
+                  };
+                };
               };
             };
 
