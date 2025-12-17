@@ -22,6 +22,13 @@
       url = "git+file:///home/yokley/workspace/nix-oracle-db";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # ODPI-C submodule (src/oracledb/impl/thick/odpi/src) as a flake input.
+    # We fetch it directly and inject it into the build, so setuptools finds it.
+    odpi = {
+      url = "github:oracle/odpi";
+      flake = false;
+    };
   };
 
   outputs = {
@@ -32,6 +39,7 @@
     pyproject-nix,
     pyproject-build-systems,
     nix-oracle-db,
+    odpi,
     ...
   }:
     flake-utils.lib.eachDefaultSystem (
@@ -51,7 +59,17 @@
 
         # 3. Placeholder for Your Custom Package Overrides
         myCustomOverrides = final: prev: {
-          # e.g., some-package = prev.some-package.overridePythonAttrs (...); */
+          # Ensure the ODPI-C submodule is present at the expected path for the build
+          oracledb = prev.oracledb.overridePythonAttrs (old: {
+            postPatch =
+              (old.postPatch or "")
+              + ''
+                echo "Injecting ODPI-C sources into src/oracledb/impl/thick/odpi/src"
+                mkdir -p src/oracledb/impl/thick/odpi
+                # Link the ODPI-C 'src' directory to the expected submodule location
+                ln -s ${odpi}/src src/oracledb/impl/thick/odpi/src
+              '';
+          });
         };
 
         # 4. Construct the Final Python Package Set
@@ -59,7 +77,7 @@
           .overrideScope (nixpkgs.lib.composeManyExtensions [
           pyproject-build-systems.overlays.default # For build tools
           uvLockedOverlay # Your locked dependencies
-          myCustomOverrides # Your fixes
+          myCustomOverrides # Your fixes (inject ODPI-C)
         ]);
 
         # --- This is where your project's metadata is accessed ---
