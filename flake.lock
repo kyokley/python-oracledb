@@ -38,30 +38,32 @@
     "nix-oracle-db": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1716815195,
-        "narHash": "sha256-c81hvKbjmqmvERZomf6QvUiyIP1ZHzzJOCdJYYzOwRs=",
-        "owner": "drupol",
+        "lastModified": 1765934817,
+        "narHash": "sha256-ePrj0DQZ6JGz9+Pys9ztvcUIX0G+uzsdxAxa9ri8BSk=",
+        "owner": "kyokley",
         "repo": "nix-oracle-db",
-        "rev": "ed83fc92be4fc718ed2c2e2cdb9854f4f40ddb3e",
+        "rev": "6e0930bd6dd268c53ad1c328941deec4ef9d8704",
         "type": "github"
       },
       "original": {
-        "owner": "drupol",
+        "owner": "kyokley",
         "repo": "nix-oracle-db",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1716509168,
-        "narHash": "sha256-4zSIhSRRIoEBwjbPm3YiGtbd8HDWzFxJjw5DYSDy1n8=",
+        "lastModified": 1765472234,
+        "narHash": "sha256-9VvC20PJPsleGMewwcWYKGzDIyjckEz8uWmT0vCDYK0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "bfb7a882678e518398ce9a31a881538679f6f092",
+        "rev": "2fbfb1d73d239d2402a8fe03963e37aab15abe8b",
         "type": "github"
       },
       "original": {
@@ -81,22 +83,6 @@
       "original": {
         "type": "tarball",
         "url": "https://github.com/NixOS/nixpkgs/archive/50eb7ecf4cd0a5756d7275c8ba36790e5bd53e33.tar.gz"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
-        "lastModified": 1765472234,
-        "narHash": "sha256-9VvC20PJPsleGMewwcWYKGzDIyjckEz8uWmT0vCDYK0=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "2fbfb1d73d239d2402a8fe03963e37aab15abe8b",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
       }
     },
     "pyproject-build-systems": {
@@ -147,7 +133,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nix-oracle-db": "nix-oracle-db",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": "nixpkgs",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "uv2nix": "uv2nix_2"

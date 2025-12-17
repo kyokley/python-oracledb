@@ -17,7 +17,10 @@
     uv2nix.inputs.pyproject-nix.follows = "pyproject-nix";
     pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
 
-    nix-oracle-db.url = "github:drupol/nix-oracle-db";
+    nix-oracle-db = {
+      url = "github:kyokley/nix-oracle-db";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
@@ -175,9 +178,9 @@
               };
 
               db = {
-                imports = [nix-oracle-db.nixosModules.oracle-database-container];
+                imports = [nix-oracle-db.nixosModules.oracle-database];
 
-                services.oracle-database-container = {
+                services.oracle-database = {
                   enable = true;
                   openFirewall = true;
                   passwordFile = ./password.txt;
