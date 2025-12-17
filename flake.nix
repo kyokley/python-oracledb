@@ -102,7 +102,10 @@
         # # App for `nix run`
         apps.default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/${thisProjectAsNixPkg.pname}";
+          program = "${self.packages.${system}.default}/bin/test-db-script";
+          meta = {
+            description = "Run the database test script using the project virtual environment";
+          };
         };
         # apps.${thisProjectAsNixPkg.pname} = self.apps.${system}.default;
 
@@ -114,8 +117,8 @@
 
           dbAddress = "80.100.101.2";
 
-          default-vm-port = 1022;
-          default-db-port = 1521;
+          defaultVmPort = 1022;
+          defaultDbPort = 1521;
         in {
           moduleTest = pkgs.testers.runNixOSTest {
             name = "moduleTest";
@@ -145,13 +148,13 @@
                     PermitRootLogin = "yes";
                     PermitEmptyPasswords = "yes";
                   };
-                  ports = [default-vm-port];
+                  ports = [defaultVmPort];
                 };
 
                 networking = {
                   firewall = {
                     enable = true;
-                    allowedTCPPorts = [default-vm-port];
+                    allowedTCPPorts = [defaultVmPort];
                   };
                   nat = {
                     enable = true;
@@ -181,8 +184,8 @@
 
               db = {
                 imports = [
-                # nix-oracle-db.nixosModules.oracle-database
-                nix-oracle-db.packages.${system}.oracle-database
+                  # nix-oracle-db.nixosModules.oracle-database
+                  nix-oracle-db.nixosModules.oracle-database
                 ];
 
                 services.oracle-database = {
@@ -199,7 +202,7 @@
                 networking = {
                   firewall = {
                     enable = true;
-                    allowedTCPPorts = [default-db-port];
+                    allowedTCPPorts = [defaultDbPort];
                   };
                 };
               };
@@ -208,7 +211,7 @@
             testScript = ''
               start_all()
               db.wait_for_unit("oracle-database-container.target")
-              vm.succeed("test-script")
+              vm.succeed("test-db-script")
             '';
           };
         };
