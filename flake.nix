@@ -191,6 +191,9 @@
                 services.oracle-database = {
                   enable = true;
                   passwordFile = ./password.txt;
+                  # Explicitly use the package from the nix-oracle-db flake,
+                  # avoiding reliance on pkgs having an overlay.
+                  package = nix-oracle-db.packages.${system}.oracle-database;
                 };
                 virtualisation.vlans = [2];
                 networking.interfaces.eth1.ipv4.addresses = [
