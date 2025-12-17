@@ -18,7 +18,8 @@
     pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
 
     nix-oracle-db = {
-      url = "github:kyokley/nix-oracle-db";
+      # url = "github:kyokley/nix-oracle-db";
+      url = "git+file:///home/yokley/workspace/nix-oracle-db";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -179,12 +180,14 @@
               };
 
               db = {
-                imports = [nix-oracle-db.nixosModules.oracle-database];
+                imports = [
+                # nix-oracle-db.nixosModules.oracle-database
+                nix-oracle-db.packages.${system}.oracle-database
+                ];
 
                 services.oracle-database = {
                   enable = true;
                   passwordFile = ./password.txt;
-                  volumeName = "";
                 };
                 virtualisation.vlans = [2];
                 networking.interfaces.eth1.ipv4.addresses = [
