@@ -15,3 +15,6 @@ def main():
             sql = "select sysdate from dual"
             for r in cursor.execute(sql):
                 print(r)
+
+if __name__ == '__main__':
+    main()

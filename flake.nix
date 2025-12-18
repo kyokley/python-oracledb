@@ -69,6 +69,12 @@
                 # Replace any existing entry and link the ODPI-C 'src' directory
                 rm -f src/oracledb/impl/thick/odpi/src
                 ln -s ${odpi}/src src/oracledb/impl/thick/odpi/src
+
+                rm -f src/oracledb/impl/thick/odpi/include
+                ln -s ${odpi}/include src/oracledb/impl/thick/odpi/include
+
+                rm -f src/oracledb/impl/thick/odpi/embed
+                ln -s ${odpi}/embed src/oracledb/impl/thick/odpi/embed
               '';
           });
         };
@@ -207,12 +213,20 @@
                   nix-oracle-db.nixosModules.oracle-database
                 ];
 
+                # environment.etc."oratab" = {
+                # text = ''
+                #   free:/var/lib/oracle-database/oradata/free:N
+                # '';
+                # mode = "0666";
+                # };
+
                 services.oracle-database = {
                   enable = true;
                   passwordFile = ./password.txt;
                   # Explicitly use the package from the nix-oracle-db flake,
                   # avoiding reliance on pkgs having an overlay.
                   package = nix-oracle-db.packages.${system}.oracle-database;
+                  openFirewall = true;
                 };
                 virtualisation.vlans = [2];
                 networking.interfaces.eth1.ipv4.addresses = [
@@ -221,19 +235,14 @@
                     prefixLength = 24;
                   }
                 ];
-                networking = {
-                  firewall = {
-                    enable = true;
-                    allowedTCPPorts = [defaultDbPort];
-                  };
-                };
               };
             };
 
             testScript = ''
               start_all()
-              db.wait_for_unit("oracle-database-container.target")
+              db.wait_for_unit("oracle-database.target")
               vm.succeed("test-db-script")
+              host.succeed("test-db-script")
             '';
           };
         };

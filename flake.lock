@@ -44,17 +44,17 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1765937353,
-        "narHash": "sha256-sMT1Pv487w72g//UoUgsB5RkyRizl62vIrGZL5QgMU8=",
-        "owner": "kyokley",
-        "repo": "nix-oracle-db",
-        "rev": "d015f5eabe1a6bbff3dbc537497fc0f4c8808647",
-        "type": "github"
+        "lastModified": 1766001604,
+        "narHash": "sha256-Sft4LvopkUmNJfD3ruKWKOxeij5RCHosliNWkrtis3E=",
+        "ref": "refs/heads/dev",
+        "rev": "b203fcb3f17a4cbff56571874f5f9a884ed87188",
+        "revCount": 57,
+        "type": "git",
+        "url": "file:///home/yokley/workspace/nix-oracle-db"
       },
       "original": {
-        "owner": "kyokley",
-        "repo": "nix-oracle-db",
-        "type": "github"
+        "type": "git",
+        "url": "file:///home/yokley/workspace/nix-oracle-db"
       }
     },
     "nixpkgs": {
@@ -85,6 +85,22 @@
       "original": {
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
+    "odpi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1762879739,
+        "narHash": "sha256-5/FDzODgSUs/dsxQyB597hcYv+FkJT4h+aXlOgAnjbE=",
+        "owner": "oracle",
+        "repo": "odpi",
+        "rev": "27928bc299c7d132008406fa86c0982e1481f4ff",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oracle",
+        "repo": "odpi",
         "type": "github"
       }
     },
@@ -137,6 +153,7 @@
         "flake-utils": "flake-utils",
         "nix-oracle-db": "nix-oracle-db",
         "nixpkgs": "nixpkgs",
+        "odpi": "odpi",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "uv2nix": "uv2nix_2"
