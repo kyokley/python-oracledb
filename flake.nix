@@ -122,6 +122,28 @@
               --add-flags $out/bin/test_script.py
           '';
         };
+        packages.test-suite = pkgs.stdenv.mkDerivation {
+          pname = thisProjectAsNixPkg.pname;
+          version = thisProjectAsNixPkg.version;
+          src = ./.;
+          nativeBuildInputs = [pkgs.makeWrapper];
+          buildInputs = [appPythonEnv ]; # Runtime Python environment
+
+          installPhase = ''
+            mkdir -p $out/bin $out/lib
+            cp -r ./tests $out/lib/tests
+            makeWrapper ${appPythonEnv}/bin/python $out/bin/create_schema \
+              --add-flags pytest \
+              --add-flags $out/lib/tests/create_schema.py
+
+            makeWrapper ${appPythonEnv}/bin/python $out/bin/pytest \
+              --add-flags pytest
+
+            makeWrapper ${appPythonEnv}/bin/python $out/bin/drop_schema \
+              --add-flags pytest \
+              --add-flags $out/lib/tests/drop_schema.py
+          '';
+        };
         # packages.${thisProjectAsNixPkg.pname} = self.packages.${system}.default;
 
         # # App for `nix run`
@@ -165,6 +187,7 @@
               vm = {pkgs, ...}: {
                 environment.systemPackages = [
                   self.packages.${system}.default
+                  self.packages.${system}.test-suite
                 ];
 
                 services.openssh = {
@@ -241,8 +264,9 @@
             testScript = ''
               start_all()
               db.wait_for_unit("oracle-database.target")
-              vm.succeed("test-db-script")
-              host.succeed("test-db-script")
+              vm.succeed("create_schema")
+              vm.succeed("pytest")
+              # vm.succeed("test-script")
             '';
           };
         };
