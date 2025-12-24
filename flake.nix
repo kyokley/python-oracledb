@@ -96,13 +96,15 @@
         appPythonEnv =
           pythonSet.mkVirtualEnv
           (thisProjectAsNixPkg.pname + "-env")
-          workspace.deps.default; # Uses deps from pyproject.toml [project.dependencies]
+          workspace.deps.all; # Uses deps from pyproject.toml [project.dependencies]
       in {
         # Development Shell
         devShells.default = pkgs.mkShell {
-          packages = [appPythonEnv pkgs.ruff pkgs.uv];
+          packages = [self.packages.${system}.test-suite];
           shellHook = ''
             ${pkgs.figlet}/bin/figlet -f slant "python-oracledb" | ${pkgs.lolcat}/bin/lolcat
+            export PYO_TEST_MAIN_PASSWORD=password
+            export PYO_TEST_ADMIN_PASSWORD=password
           '';
         };
 
@@ -132,15 +134,14 @@
           installPhase = ''
             mkdir -p $out/bin $out/lib
             cp -r ./tests $out/lib/tests
-            makeWrapper ${appPythonEnv}/bin/python $out/bin/create_schema \
-              --add-flags pytest \
+            cp ${appPythonEnv}/bin/pytest $out/bin/pytest
+
+            makeWrapper ${appPythonEnv}/bin/pytest $out/bin/create_schema \
+              --add-flags "--rootdir" \
+              --add-flags "$out/lib/tests" \
               --add-flags $out/lib/tests/create_schema.py
 
-            makeWrapper ${appPythonEnv}/bin/python $out/bin/pytest \
-              --add-flags pytest
-
-            makeWrapper ${appPythonEnv}/bin/python $out/bin/drop_schema \
-              --add-flags pytest \
+            makeWrapper ${appPythonEnv}/bin/pytest $out/bin/drop_schema \
               --add-flags $out/lib/tests/drop_schema.py
           '';
         };
@@ -189,6 +190,10 @@
                   self.packages.${system}.default
                   self.packages.${system}.test-suite
                 ];
+                environment.variables = {
+                  PYO_TEST_MAIN_PASSWORD = "password";
+                  PYO_TEST_ADMIN_PASSWORD = "password";
+                };
 
                 services.openssh = {
                   enable = true;
