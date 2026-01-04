@@ -15,3 +15,14 @@ samples/sample.csv
 samples/sample.parquet
 samples/notebooks/testwrite.csv
 *.so
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
