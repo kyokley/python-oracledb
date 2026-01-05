@@ -18,8 +18,8 @@
     pyproject-build-systems.inputs.pyproject-nix.follows = "pyproject-nix";
 
     nix-oracle-db = {
-      # url = "github:kyokley/nix-oracle-db";
-      url = "git+file:///home/yokley/workspace/nix-oracle-db";
+      url = "github:kyokley/nix-oracle-db/gvenzl";
+      # url = "git+file:///home/yokley/workspace/nix-oracle-db";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -103,8 +103,6 @@
           packages = [self.packages.${system}.test-suite];
           shellHook = ''
             ${pkgs.figlet}/bin/figlet -f slant "python-oracledb" | ${pkgs.lolcat}/bin/lolcat
-            export PYO_TEST_MAIN_PASSWORD=password
-            export PYO_TEST_ADMIN_PASSWORD=password
           '';
         };
 
@@ -238,7 +236,7 @@
               db = {
                 imports = [
                   # nix-oracle-db.nixosModules.oracle-database
-                  nix-oracle-db.nixosModules.oracle-database
+                  nix-oracle-db.nixosModules.oracle-database-container
                 ];
 
                 # environment.etc."oratab" = {
@@ -248,13 +246,29 @@
                 # mode = "0666";
                 # };
 
-                services.oracle-database = {
+                services.oracle-database-container = let
+                  initScriptFile = builtins.toFile "01_create.sql" ''
+                    ALTER SESSION SET current_schema = my_user;
+
+                    CREATE TABLE student (
+                        last_name       VARCHAR2(15) NOT NULL,
+                        first_name      VARCHAR2(15) NOT NULL,
+                        id              NUMBER(6) PRIMARY KEY
+                    );
+                    INSERT INTO student (last_name, first_name, id)
+                    VALUES ('Doe', 'John', 1001);
+                    SELECT * FROM student;
+                  '';
+                in {
                   enable = true;
                   passwordFile = ./password.txt;
                   # Explicitly use the package from the nix-oracle-db flake,
                   # avoiding reliance on pkgs having an overlay.
-                  package = nix-oracle-db.packages.${system}.oracle-database;
+                  # package = nix-oracle-db.packages.${system}.oracle-database;
                   openFirewall = true;
+                  initScript = initScriptFile;
+                  appUser = "my_user";
+                  appUserPasswordFile = ./password.txt;
                 };
                 virtualisation.vlans = [2];
                 networking.interfaces.eth1.ipv4.addresses = [

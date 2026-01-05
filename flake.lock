@@ -44,17 +44,18 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1765990832,
-        "narHash": "sha256-ddiYlGPrLo+FawEe348KEbTTgpFJyl/PQkRx5bRGk+M=",
-        "ref": "refs/heads/main",
-        "rev": "996af827e4fb2314fa0e56bc9f5c91897d5e9324",
-        "revCount": 43,
-        "type": "git",
-        "url": "file:///home/yokley/workspace/nix-oracle-db"
+        "lastModified": 1767574094,
+        "narHash": "sha256-qHwf4gmukCNf55O2vVhzrmfWXxWdLzp3WkCzpsUi/48=",
+        "owner": "kyokley",
+        "repo": "nix-oracle-db",
+        "rev": "3ba2a88402ffcb2e5a35b9ff59574803a69ae22a",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "file:///home/yokley/workspace/nix-oracle-db"
+        "owner": "kyokley",
+        "ref": "gvenzl",
+        "repo": "nix-oracle-db",
+        "type": "github"
       }
     },
     "nixpkgs": {
