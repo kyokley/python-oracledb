@@ -662,6 +662,8 @@ cdef class Address(ConnectParamsNode):
     connection to the database.
     """
 
+    pass
+
     def __init__(self):
         ConnectParamsNode.__init__(self, False)
         self.protocol = DEFAULT_PROTOCOL
