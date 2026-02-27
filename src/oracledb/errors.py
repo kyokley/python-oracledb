@@ -253,6 +253,13 @@ ERR_INVALID_POOL_CLASS = 2026
 ERR_INVALID_POOL_PARAMS = 2027
 ERR_EXPECTING_LIST_FOR_ARRAY_VAR = 2028
 ERR_HTTPS_PROXY_REQUIRES_TCPS = 2029
+ERR_SOCKS_PROXY_PORT_REQUIRED = 2070
+ERR_SOCKS_PROXY_MISSING_HOST = 2071
+ERR_SOCKS_PROXY_CREDENTIALS_REQUIRE_PROXY = 2072
+ERR_SOCKS_PROXY_CREDENTIALS_INCOMPLETE = 2073
+ERR_MULTIPLE_PROXIES = 2074
+ERR_SOCKS_PROXY_UNSUPPORTED_METHOD = 2075
+ERR_SOCKS_PROXY_AUTH_FAILED = 2076
 ERR_INVALID_LOB_OFFSET = 2030
 ERR_INVALID_ACCESS_TOKEN_PARAM = 2031
 ERR_INVALID_ACCESS_TOKEN_RETURNED = 2032
@@ -683,6 +690,25 @@ ERR_MESSAGE_FORMATS = {
     ERR_HTTPS_PROXY_REQUIRES_TCPS: (
         "https_proxy requires use of the tcps protocol"
     ),
+    ERR_SOCKS_PROXY_PORT_REQUIRED: (
+        "socks_proxy_port must be specified when socks_proxy is set"
+    ),
+    ERR_SOCKS_PROXY_MISSING_HOST: (
+        "socks_proxy must be specified when socks_proxy_port is set"
+    ),
+    ERR_SOCKS_PROXY_CREDENTIALS_REQUIRE_PROXY: (
+        "socks_proxy must be specified when socks proxy credentials are set"
+    ),
+    ERR_SOCKS_PROXY_CREDENTIALS_INCOMPLETE: (
+        "both socks_proxy_username and socks_proxy_password must be specified"
+    ),
+    ERR_MULTIPLE_PROXIES: (
+        "https_proxy and socks_proxy cannot both be specified"
+    ),
+    ERR_SOCKS_PROXY_UNSUPPORTED_METHOD: (
+        "SOCKS proxy does not support required authentication method"
+    ),
+    ERR_SOCKS_PROXY_AUTH_FAILED: ("SOCKS proxy authentication failed"),
     ERR_IFILE_CYCLE_DETECTED: (
         "file '{including_file_name}' includes file '{included_file_name}', "
         "which forms a cycle"
