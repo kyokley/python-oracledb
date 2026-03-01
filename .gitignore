@@ -6,6 +6,7 @@ build/
 dist/
 doc/build
 src/oracledb/*.c
+src/oracledb/*.so
 src/oracledb/interchange/*.c
 tests/ext/config.ini
 .ipynb_checkpoints/
