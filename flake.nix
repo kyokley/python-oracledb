@@ -76,6 +76,21 @@
                   inputs.nix-oracle-db.nixosModules.oracle-database-container
                 ];
 
+                # Enable networking to pull Docker images from registries
+                # The test VM uses QEMU user-mode networking which supports internal VM communication.
+                # For outbound internet access during local development, ensure proper QEMU network backend is configured.
+                networking = {
+                  useDHCP = true;  # Enable DHCP for automatic IP assignment
+                  firewall.enable = false;  # Allow all outbound traffic to Docker registries
+                  nameservers = [ "8.8.8.8" "1.1.1.1" ];  # Google and Cloudflare public DNS servers
+                };
+                
+                # Enable DNS resolution service for hostname lookups
+                services.resolved = {
+                  enable = true;
+                  settings.Resolve.DNSSEC = "no";  # Disable DNSSEC for compatibility
+                };
+
                 services.oracle-database-container = {
                   enable = true;
                   openFirewall = true;
