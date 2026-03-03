@@ -78,6 +78,7 @@
 
                 services.oracle-database = {
                   enable = true;
+                  package = inputs.nix-oracle-db.packages.${system}.oracle-database;
                   openFirewall = true;
                   passwordFile = toString (builtins.toFile "password.txt" ''
                     password
