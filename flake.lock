@@ -60,16 +60,15 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1767574094,
-        "narHash": "sha256-qHwf4gmukCNf55O2vVhzrmfWXxWdLzp3WkCzpsUi/48=",
+        "lastModified": 1765990832,
+        "narHash": "sha256-ddiYlGPrLo+FawEe348KEbTTgpFJyl/PQkRx5bRGk+M=",
         "owner": "kyokley",
         "repo": "nix-oracle-db",
-        "rev": "3ba2a88402ffcb2e5a35b9ff59574803a69ae22a",
+        "rev": "996af827e4fb2314fa0e56bc9f5c91897d5e9324",
         "type": "github"
       },
       "original": {
         "owner": "kyokley",
-        "ref": "gvenzl",
         "repo": "nix-oracle-db",
         "type": "github"
       }
