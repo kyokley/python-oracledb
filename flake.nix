@@ -5,7 +5,7 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     devshell.url = "github:numtide/devshell";
-    nix-oracle-db.url = "github:kyokley/nix-oracle-db/gvenzl";
+    nix-oracle-db.url = "github:kyokley/nix-oracle-db";
   };
 
   outputs = inputs @ {flake-parts, ...}:
@@ -73,50 +73,21 @@
                   #   1. Add foo to inputs
                   #   2. Add foo as a parameter to the outputs function
                   #   3. Add here: foo.flakeModule
-                  inputs.nix-oracle-db.nixosModules.oracle-database-container
+                  inputs.nix-oracle-db.nixosModules.oracle-database
                 ];
 
-                # Enable networking to pull Docker images from registries
-                # The test VM uses QEMU user-mode networking which supports internal VM communication.
-                # For outbound internet access during local development, ensure proper QEMU network backend is configured.
-                networking = {
-                  useDHCP = true;  # Enable DHCP for automatic IP assignment
-                  firewall.enable = false;  # Allow all outbound traffic to Docker registries
-                  nameservers = [ "8.8.8.8" "1.1.1.1" ];  # Google and Cloudflare public DNS servers
-                };
-                
-                # Enable DNS resolution service for hostname lookups
-                services.resolved = {
-                  enable = true;
-                  settings.Resolve.DNSSEC = "no";  # Disable DNSSEC for compatibility
-                };
-
-                services.oracle-database-container = {
+                services.oracle-database = {
                   enable = true;
                   openFirewall = true;
                   passwordFile = toString (builtins.toFile "password.txt" ''
                     password
                   '');
-                  initScript = builtins.toFile "01_create.sql" ''
-                    ALTER SESSION SET CONTAINER=FREEPDB1;
-                    CREATE USER TEST IDENTIFIED BY test QUOTA UNLIMITED ON USERS;
-                    GRANT CONNECT, RESOURCE TO TEST;
-
-                    CREATE TABLE student (
-                        last_name       VARCHAR2(15) NOT NULL,
-                        first_name      VARCHAR2(15) NOT NULL,
-                        id              NUMBER(6) PRIMARY KEY
-                    );
-                    INSERT INTO students (last_name, first_name, id)
-                    VALUES ('Doe', 'John', 1001);
-
-                  '';
                 };
               };
             };
             testScript = ''
               start_all()
-              db.wait_for_unit("oracle-database-container.target")
+              db.wait_for_unit("oracle-database.target")
             '';
           };
         };
