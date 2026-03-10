@@ -496,9 +496,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The connection class to use for Database Resident Connection Pooling
         (DRCP).
         """
-        return [
-            d.cclass
-            for d in self._impl.description_list.children]
+        return [d.cclass for d in self._impl.description_list.children]
 
     @property
     def config_dir(self) -> str:
@@ -522,7 +520,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         return [
             d.connection_id_prefix
-            for d in self._impl.description_list.children]
+            for d in self._impl.description_list.children
+        ]
 
     @property
     def debug_jdwp(self) -> str:
@@ -575,9 +574,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The number of minutes between the sending of keepalive probes. If this
         parameter is set to a value greater than zero it enables keepalive.
         """
-        return [
-            d.expire_time
-            for d in self._impl.description_list.children]
+        return [d.expire_time for d in self._impl.description_list.children]
 
     @property
     def externalauth(self) -> bool:
@@ -602,10 +599,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The hostname or IP address of the machine hosting the database or the
         database listener.
         """
-        return [
-            a.host
-            for a in self._impl._get_addresses()
-        ]
+        return [a.host for a in self._impl._get_addresses()]
 
     @property
     @_flatten_value
@@ -614,10 +608,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The hostname or IP address of a proxy host to use for tunneling secure
         connections.
         """
-        return [
-            a.https_proxy
-            for a in self._impl._get_addresses()
-        ]
+        return [a.https_proxy for a in self._impl._get_addresses()]
 
     @property
     @_flatten_value
@@ -625,10 +616,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         The port on which to communicate with the proxy host.
         """
-        return [
-            a.https_proxy_port
-            for a in self._impl._get_addresses()
-        ]
+        return [a.https_proxy_port for a in self._impl._get_addresses()]
 
     @property
     @_flatten_value
@@ -636,9 +624,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         The instance name of the database.
         """
-        return [
-            d.instance_name
-            for d in self._impl.description_list.children]
+        return [d.instance_name for d in self._impl.description_list.children]
 
     @property
     def machine(self) -> str:
@@ -685,9 +671,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         DRCP connections can be returned to the pool. This requires the use of
         DRCP with Oracle Database 23.4 or higher.
         """
-        return [
-            d.pool_boundary
-            for d in self._impl.description_list.children]
+        return [d.pool_boundary for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -696,9 +680,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The name of the DRCP pool when using multi-pool DRCP with Oracle
         Database 23.4, or higher.
         """
-        return [
-            d.pool_name
-            for d in self._impl.description_list.children]
+        return [d.pool_name for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -706,10 +688,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         The port number on which the database listener is listening.
         """
-        return [
-            a.port
-            for a in self._impl._get_addresses()
-        ]
+        return [a.port for a in self._impl._get_addresses()]
 
     @property
     def program(self) -> str:
@@ -726,10 +705,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         One of the strings "tcp" or "tcps" indicating whether to use
         unencrypted network traffic or encrypted network traffic (TLS).
         """
-        return [
-            a.protocol
-            for a in self._impl._get_addresses()
-        ]
+        return [a.protocol for a in self._impl._get_addresses()]
 
     @property
     def proxy_user(self) -> str:
@@ -749,7 +725,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         return [
             oracledb.Purity(d.purity)
-            for d in self._impl.description_list.children]
+            for d in self._impl.description_list.children
+        ]
 
     @property
     @_flatten_value
@@ -758,9 +735,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The number of times that initial connection establishment should be
         retried before the connection attempt is terminated.
         """
-        return [
-            d.retry_count
-            for d in self._impl.description_list.children]
+        return [d.retry_count for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -769,9 +744,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The number of seconds to wait before retrying to establish a
         connection.
         """
-        return [
-            d.retry_delay
-            for d in self._impl.description_list.children]
+        return [d.retry_delay for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -784,9 +757,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         be used is negotiated down to the lower of this value and the database
         network SDU configuration value.
         """
-        return [
-            d.sdu
-            for d in self._impl.description_list.children]
+        return [d.sdu for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -795,9 +766,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The type of server connection that should be established. If specified,
         it should be one of strings "dedicated", "shared" or "pooled".
         """
-        return [
-            d.server_type
-            for d in self._impl.description_list.children]
+        return [d.server_type for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -805,9 +774,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         The service name of the database.
         """
-        return [
-            d.service_name
-            for d in self._impl.description_list.children]
+        return [d.service_name for d in self._impl.description_list.children]
 
     @property
     def shardingkey(self) -> list:
@@ -825,9 +792,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The system identifier (SID) of the database. Note using a service_name
         instead is recommended.
         """
-        return [
-            d.sid
-            for d in self._impl.description_list.children]
+        return [d.sid for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -836,10 +801,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         The hostname or IP address of a SOCKS5 proxy host to use for
         establishing connections.
         """
-        return [
-            a.socks_proxy
-            for a in self._impl._get_addresses()
-        ]
+        return [a.socks_proxy for a in self._impl._get_addresses()]
 
     @property
     @_flatten_value
@@ -847,10 +809,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         The port on which to communicate with the SOCKS5 proxy host.
         """
-        return [
-            a.socks_proxy_port
-            for a in self._impl._get_addresses()
-        ]
+        return [a.socks_proxy_port for a in self._impl._get_addresses()]
 
     @property
     def ssl_context(self) -> Any:
@@ -873,8 +832,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         Otherwise the hostname will be used.
         """
         return [
-            d.ssl_server_cert_dn
-            for d in self._impl.description_list.children]
+            d.ssl_server_cert_dn for d in self._impl.description_list.children
+        ]
 
     @property
     @_flatten_value
@@ -886,8 +845,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         parameter is not privided, host name matching is performed instead.
         """
         return [
-            d.ssl_server_dn_match
-            for d in self._impl.description_list.children]
+            d.ssl_server_dn_match for d in self._impl.description_list.children
+        ]
 
     @property
     @_flatten_value
@@ -896,9 +855,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         One of the values ssl.TLSVersion.TLSv1_2 or ssl.TLSVersion.TLSv1_3
         indicating which TLS version to use.
         """
-        return [
-            d.ssl_version
-            for d in self._impl.description_list.children]
+        return [d.ssl_version for d in self._impl.description_list.children]
 
     @property
     def stmtcachesize(self) -> int:
@@ -932,8 +889,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         establishing a connection to the database host.
         """
         return [
-            d.tcp_connect_timeout
-            for d in self._impl.description_list.children]
+            d.tcp_connect_timeout for d in self._impl.description_list.children
+        ]
 
     @property
     def terminal(self) -> str:
@@ -968,9 +925,7 @@ class ConnectParams(metaclass=BaseMetaClass):
         A boolean indicating whether to use the TLS SNI extension to bypass the
         second TLS neogiation that would otherwise be required.
         """
-        return [
-            d.use_sni
-            for d in self._impl.description_list.children]
+        return [d.use_sni for d in self._impl.description_list.children]
 
     @property
     @_flatten_value
@@ -982,8 +937,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         documentation for more information.
         """
         return [
-            d.use_tcp_fast_open
-            for d in self._impl.description_list.children]
+            d.use_tcp_fast_open for d in self._impl.description_list.children
+        ]
 
     @property
     @_flatten_value
@@ -995,8 +950,8 @@ class ConnectParams(metaclass=BaseMetaClass):
         containing the file cwallet.sso.
         """
         return [
-            d.wallet_location
-            for d in self._impl.description_list.children]
+            d.wallet_location for d in self._impl.description_list.children
+        ]
 
     def copy(self) -> "ConnectParams":
         """

@@ -985,7 +985,8 @@ def test_4547():
 def test_4548():
     "4548 - test easy connect string with multiple hosts, different ports"
     connect_string = (
-        "host4548a,host4548b:4548,host4548c,host4548d:4549/service_name_4548"
+        "host4548a,host4548b:4548,host4548c,host4548d:4549/"
+        "service_name_4548"
     )
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)

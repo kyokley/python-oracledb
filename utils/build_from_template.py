@@ -288,7 +288,7 @@ def params_properties_content(indent):
             body_lines = [
                 "    return [",
                 "        " + fragment,
-                "        for d in self._impl.description_list.children]",
+                "        for d in self._impl.description_list.children" "]",
             ]
         body_lines = (
             [
@@ -355,6 +355,4 @@ replace_tag("params_setter_args", params_setter_args_content)
 
 # write the final code to the target location
 open(target_name, "w").write(code)
-subprocess.call(
-    [sys.executable, "-m", "black", target_name], stderr=subprocess.DEVNULL
-)
+subprocess.call([sys.executable, "-m", "black", target_name])
