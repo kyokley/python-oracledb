@@ -421,15 +421,25 @@ cdef class Protocol(BaseProtocol):
         # complete connection through SOCKS5 proxy, if applicable
         if use_socks_proxy:
 
+            def _read_exact(num_bytes):
+                """Read exactly num_bytes from the socket during connect."""
+                buf = bytearray()
+                while len(buf) < num_bytes:
+                    chunk = sock.recv(num_bytes - len(buf))
+                    if not chunk:
+                        errors._raise_err(
+                            errors.ERR_PROXY_FAILURE,
+                            response="SOCKS proxy closed connection",
+                        )
+                    buf.extend(chunk)
+                return bytes(buf)
+
             # greeting
             if address.socks_proxy_username is None:
                 sock.send(b"\x05\x01\x00")
             else:
                 sock.send(b"\x05\x01\x02")
-            b = sock.recv(2)
-            if len(b) != 2:
-                errors._raise_err(errors.ERR_PROXY_FAILURE,
-                                  response="SOCKS greeting failed")
+            b = _read_exact(2)
             ver = b[0]
             method = b[1]
             if ver != 5:
@@ -450,8 +460,8 @@ cdef class Protocol(BaseProtocol):
                                       response="SOCKS credentials too long")
                 sock.send(b"\x01" + bytes([len(user_bytes)]) + user_bytes \
                           + bytes([len(pw_bytes)]) + pw_bytes)
-                b = sock.recv(2)
-                if len(b) != 2 or b[1] != 0:
+                b = _read_exact(2)
+                if b[1] != 0:
                     errors._raise_err(errors.ERR_SOCKS_PROXY_AUTH_FAILED)
 
             # CONNECT request (use domain name)
@@ -464,10 +474,7 @@ cdef class Protocol(BaseProtocol):
             sock.send(req)
 
             # reply: VER REP RSV ATYP ...
-            b = sock.recv(4)
-            if len(b) != 4:
-                errors._raise_err(errors.ERR_PROXY_FAILURE,
-                                  response="SOCKS connect failed")
+            b = _read_exact(4)
             ver = b[0]
             rep = b[1]
             atyp = b[3]
@@ -482,17 +489,14 @@ cdef class Protocol(BaseProtocol):
             elif atyp == 4:
                 n = 16
             elif atyp == 3:
-                b = sock.recv(1)
-                if len(b) != 1:
-                    errors._raise_err(errors.ERR_PROXY_FAILURE,
-                                      response="SOCKS connect failed")
+                b = _read_exact(1)
                 n = b[0]
             else:
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response="SOCKS proxy returned invalid address type")
             if n:
-                sock.recv(n)
-            sock.recv(2)
+                _read_exact(n)
+            _read_exact(2)
 
         # set socket on transport
         self._transport.set_from_socket(sock, params, description, address)
