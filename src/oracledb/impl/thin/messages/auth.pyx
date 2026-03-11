@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -304,13 +304,8 @@ cdef class AuthMessage(Message):
         cdef:
             bytes key_bytes = key.encode()
             bytes value_bytes = value.encode()
-            uint32_t key_len = <uint32_t> len(key_bytes)
-            uint32_t value_len = <uint32_t> len(value_bytes)
-        buf.write_ub4(key_len)
-        buf.write_bytes_with_length(key_bytes)
-        buf.write_ub4(value_len)
-        if value_len > 0:
-            buf.write_bytes_with_length(value_bytes)
+        buf.write_bytes_with_two_lengths(key_bytes)
+        buf.write_bytes_with_two_lengths(value_bytes)
         buf.write_ub4(flags)
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
@@ -416,9 +411,10 @@ cdef class AuthMessage(Message):
                                       str(self.purity), 1)
             if self.private_key is not None:
                 date_format = "%a, %d %b %Y %H:%M:%S GMT"
-                now = datetime.datetime.utcnow().strftime(date_format)
+                now = datetime.datetime.now(datetime.timezone.utc)
+                formatted_now = now.strftime(date_format)
                 host_info = "%s:%d" % buf._transport.get_host_info()
-                header = f"date: {now}\n" + \
+                header = f"date: {formatted_now}\n" + \
                          f"(request-target): {self.service_name}\n" + \
                          f"host: {host_info}"
                 signature = get_signature(self.private_key, header)

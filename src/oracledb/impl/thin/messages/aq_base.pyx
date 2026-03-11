@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2025, Oracle and/or its affiliates.
+# Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -204,7 +204,8 @@ cdef class AqBaseMessage(Message):
         """
         if self.queue_impl.is_json:
             buf.write_oson(props_impl.payload_obj,
-                           self.conn_impl._oson_max_fname_size, False)
+                           self.conn_impl.supports_oson_long_field_names,
+                           write_length=False)
         elif self.queue_impl.payload_type is not None:
             buf.write_dbobject(props_impl.payload_obj)
         else:
@@ -239,5 +240,4 @@ cdef class AqBaseMessage(Message):
                 value_bytes = value.encode()
             else:
                 value_bytes = value
-            buf.write_ub4(len(value_bytes))
-            buf.write_bytes_with_length(value_bytes)
+            buf.write_bytes_with_two_lengths(value_bytes)

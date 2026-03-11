@@ -26,11 +26,26 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added support for creating a :ref:`cursor object <cursorobj>` from an
+    external OCIStmt handle. The external handle should be wrapped in a
+    PyCapsule named ``oci_stmt_handle``. A new property :attr:`Cursor.handle`
+    was also added to provide access to the internal OCIStmt handle in order to
+    facilitate testing and to support external use, if required.
+#)  Methods :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()` now support an optional ``handle``
+    argument to pass an external OCIStmt handle wrapped in a PyCapsule named
+    ``oci_stmt_handle``.
 #)  Dropped support for Oracle Client libraries before 19c.
 
 Common Changes
 ++++++++++++++
 
+#)  Added support for storing and retrieving secrets (:func:`save_secret()` and
+    :func:`get_secret()`), either globally or by using thread local storage,
+    which prevents the secret from being revealed in memory dumps.
+#)  Added attribute :attr:`ConnectParams.on_connect_callback` which is invoked
+    when a standalone connection is created or a connection is acquired from a
+    connection pool.
 #)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
 
     - Added Session Token-based authentication support to the OCI Tokens
@@ -41,6 +56,8 @@ Common Changes
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
+#)  Fixed bug when inserting data frames that are views of other data frames
+    (`issue 574 <https://github.com/oracle/python-oracledb/issues/574>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
     python-oracledb/tree/main/samples/notebooks>`__ to cover recent
     python-oracledb features.

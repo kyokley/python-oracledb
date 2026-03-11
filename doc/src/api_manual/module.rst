@@ -21,6 +21,10 @@ Oracledb Methods
 
 .. autofunction:: connect
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -58,6 +62,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: connect_async
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 
@@ -101,6 +109,10 @@ Oracledb Methods
 
 .. autofunction:: create_pool
 
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
+
     .. versionchanged:: 3.2.0
 
         The ``pool_name`` parameter was added.
@@ -137,6 +149,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: create_pool_async
+
+    .. versionchanged:: 4.0.0
+
+        The ``on_connect_callback`` parameter was added.
 
     .. versionchanged:: 3.2.0
 
@@ -192,6 +208,10 @@ Oracledb Methods
     See :ref:`connpoolcache` for more information.
 
     .. versionadded:: 3.0.0
+
+.. autofunction:: get_secret
+
+    .. versionadded:: 4.0.0
 
 .. autofunction:: init_oracle_client
 
@@ -253,6 +273,10 @@ Oracledb Methods
     .. dbapimethodextension::
 
     .. versionadded:: 2.5.0
+
+.. autofunction:: save_secret
+
+    .. versionadded:: 4.0.0
 
 .. autofunction:: Time
 
@@ -1253,3 +1277,14 @@ library/stdtypes.html#bytes>`__ class.
 .. versionadded:: 2.1.0
 
 .. dbapimethodextension::
+
+SecretValue Class
+=================
+
+.. autoclass:: SecretValue
+
+    Creates and returns a SecretValue object.
+
+.. versionadded:: 4.0.0
+
+.. autoproperty:: SecretValue.value

@@ -363,11 +363,12 @@ cdef class Buffer:
     cdef int write_bool(self, bint value) except -1
     cdef int write_bytes(self, bytes value) except -1
     cdef int write_bytes_with_length(self, bytes value) except -1
+    cdef int write_bytes_with_two_lengths(self, object value) except -1
     cdef int write_interval_ds(self, object value) except -1
     cdef int write_interval_ym(self, object value) except -1
     cdef int write_oracle_date(self, object value, uint8_t length) except -1
     cdef int write_oracle_number(self, bytes num_bytes) except -1
-    cdef int write_oson(self, value, ssize_t max_fname_size,
+    cdef int write_oson(self, value, bint supports_long_fnames,
                         bint write_length=*) except -1
     cdef int write_raw(self, const char_type *data, ssize_t length) except -1
     cdef int write_sb4(self, int32_t value) except -1
@@ -456,7 +457,7 @@ cdef class OsonEncoder(GrowableBuffer):
     cdef int _examine_node(self, object value) except -1
     cdef int _write_extended_header(self) except -1
     cdef int _write_fnames_seg(self, OsonFieldNamesSegment seg) except -1
-    cdef int encode(self, object value, ssize_t max_fname_size) except -1
+    cdef int encode(self, object value, bint supports_long_fnames=*) except -1
 
 
 cdef class VectorDecoder(Buffer):
@@ -611,19 +612,14 @@ cdef class ConnectParamsImpl:
         uint64_t _external_handle
         public str debug_jdwp
         object access_token_callback
-        object access_token_expires
+        public object on_connect_callback
         Description _default_description
         Address _default_address
-        bytearray _password
-        bytearray _password_obfuscator
-        bytearray _new_password
-        bytearray _new_password_obfuscator
-        bytearray _wallet_password
-        bytearray _wallet_password_obfuscator
-        bytearray _token
-        bytearray _token_obfuscator
-        bytearray _private_key
-        bytearray _private_key_obfuscator
+        SecretValueImpl _password
+        SecretValueImpl _new_password
+        SecretValueImpl _wallet_password
+        SecretValueImpl _token
+        SecretValueImpl _private_key
         public str program
         public str machine
         public str terminal
@@ -637,7 +633,6 @@ cdef class ConnectParamsImpl:
     cdef int _copy(self, ConnectParamsImpl other_params) except -1
     cdef str _get_connect_string(self)
     cdef bytes _get_new_password(self)
-    cdef bytearray _get_obfuscator(self, str secret_value)
     cdef bytes _get_password(self)
     cdef str _get_private_key(self)
     cdef str _get_token(self)
@@ -648,11 +643,11 @@ cdef class ConnectParamsImpl:
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1
+    cdef int _set_on_connect_param(self, object val) except -1
     cdef int _set_new_password(self, object password) except -1
     cdef int _set_password(self, object password) except -1
     cdef int _set_wallet_password(self, object password) except -1
     cdef str _transform_password(self, object password)
-    cdef bytearray _xor_bytes(self, bytearray a, bytearray b)
 
 
 cdef class PoolParamsImpl(ConnectParamsImpl):
@@ -686,7 +681,7 @@ cdef class BaseConnImpl:
         public bint invoke_session_callback
         readonly tuple server_version
         readonly bint supports_bool
-        ssize_t _oson_max_fname_size
+        bint supports_oson_long_field_names
         bint _allow_bind_str_to_lob
         bint _in_request
 
@@ -974,6 +969,19 @@ cdef class PipelineOpResultImpl:
         readonly list fetch_metadata
 
     cdef int _capture_err(self, Exception exc) except -1
+
+
+cdef class SecretValueImpl:
+    cdef:
+        bytearray value
+        bytearray obfuscator
+        object expires
+
+    cdef bytearray _xor_bytes(self, bytearray value)
+    cpdef str get_value(self)
+    cdef bytes get_value_as_bytes(self)
+    cpdef bool has_expired(self)
+    cpdef int set_value(self, str secret_value, object expires=*) except -1
 
 
 cdef class SparseVectorImpl:
