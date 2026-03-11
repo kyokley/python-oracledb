@@ -226,6 +226,20 @@ cdef class Protocol(BaseProtocol):
         BaseProtocol.__init__(self)
         self._request_lock = threading.Lock()
 
+    cdef bytes _read_exact(self, object sock, int num_bytes) except *:
+        """Read exactly num_bytes from the socket during connect."""
+        cdef bytearray buf = bytearray()
+        cdef bytes chunk
+        while len(buf) < num_bytes:
+            chunk = sock.recv(num_bytes - len(buf))
+            if not chunk:
+                errors._raise_err(
+                    errors.ERR_PROXY_FAILURE,
+                    response="SOCKS proxy closed connection",
+                )
+            buf.extend(chunk)
+        return bytes(buf)
+
     cdef int _close(self, BaseThinConnImpl conn_impl) except -1:
         """
         Closes the connection to the database.
@@ -421,25 +435,12 @@ cdef class Protocol(BaseProtocol):
         # complete connection through SOCKS5 proxy, if applicable
         if use_socks_proxy:
 
-            def _read_exact(num_bytes):
-                """Read exactly num_bytes from the socket during connect."""
-                buf = bytearray()
-                while len(buf) < num_bytes:
-                    chunk = sock.recv(num_bytes - len(buf))
-                    if not chunk:
-                        errors._raise_err(
-                            errors.ERR_PROXY_FAILURE,
-                            response="SOCKS proxy closed connection",
-                        )
-                    buf.extend(chunk)
-                return bytes(buf)
-
             # greeting
             if address.socks_proxy_username is None:
                 sock.send(b"\x05\x01\x00")
             else:
                 sock.send(b"\x05\x01\x02")
-            b = _read_exact(2)
+            b = self._read_exact(sock, 2)
             ver = b[0]
             method = b[1]
             if ver != 5:
@@ -460,7 +461,7 @@ cdef class Protocol(BaseProtocol):
                                       response="SOCKS credentials too long")
                 sock.send(b"\x01" + bytes([len(user_bytes)]) + user_bytes \
                           + bytes([len(pw_bytes)]) + pw_bytes)
-                b = _read_exact(2)
+                b = self._read_exact(sock, 2)
                 if b[1] != 0:
                     errors._raise_err(errors.ERR_SOCKS_PROXY_AUTH_FAILED)
 
@@ -474,7 +475,7 @@ cdef class Protocol(BaseProtocol):
             sock.send(req)
 
             # reply: VER REP RSV ATYP ...
-            b = _read_exact(4)
+            b = self._read_exact(sock, 4)
             ver = b[0]
             rep = b[1]
             atyp = b[3]
@@ -489,14 +490,14 @@ cdef class Protocol(BaseProtocol):
             elif atyp == 4:
                 n = 16
             elif atyp == 3:
-                b = _read_exact(1)
+                b = self._read_exact(sock, 1)
                 n = b[0]
             else:
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response="SOCKS proxy returned invalid address type")
             if n:
-                _read_exact(n)
-            _read_exact(2)
+                self._read_exact(sock, n)
+            self._read_exact(sock, 2)
 
         # set socket on transport
         self._transport.set_from_socket(sock, params, description, address)
@@ -667,6 +668,21 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         BaseProtocol.__init__(self)
         self._request_lock = asyncio.Lock()
         self._transport._is_async = True
+
+    async def _read_exact(self, num_bytes):
+        """Read exactly num_bytes from the transport during connect."""
+        buf = bytearray()
+        while len(buf) < num_bytes:
+            self._proxy_waiter = self._read_buf._loop.create_future()
+            chunk = await self._proxy_waiter
+            if not chunk:
+                break
+            need = num_bytes - len(buf)
+            buf.extend(chunk[:need])
+            extra = chunk[need:]
+            if extra:
+                self._transport._partial_buf = bytes(extra)
+        return bytes(buf)
 
     async def _close(self, BaseThinConnImpl conn_impl):
         """
@@ -864,27 +880,12 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         # complete connection through SOCKS5 proxy, if applicable
         if use_socks_proxy:
 
-            async def _read_exact(num_bytes):
-                """Read exactly num_bytes from the transport during connect."""
-                buf = bytearray()
-                while len(buf) < num_bytes:
-                    self._proxy_waiter = self._read_buf._loop.create_future()
-                    chunk = await self._proxy_waiter
-                    if not chunk:
-                        break
-                    need = num_bytes - len(buf)
-                    buf.extend(chunk[:need])
-                    extra = chunk[need:]
-                    if extra:
-                        self._transport._partial_buf = bytes(extra)
-                return bytes(buf)
-
             # greeting
             if address.socks_proxy_username is None:
                 transport.write(b"\x05\x01\x00")
             else:
                 transport.write(b"\x05\x01\x02")
-            reply = await _read_exact(2)
+            reply = await self._read_exact(2)
             if len(reply) != 2 or reply[0] != 5:
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response="SOCKS greeting failed")
@@ -905,7 +906,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                     b"\x01" + bytes([len(user_bytes)]) + user_bytes
                     + bytes([len(pw_bytes)]) + pw_bytes
                 )
-                reply = await _read_exact(2)
+                reply = await self._read_exact(2)
                 if len(reply) != 2 or reply[1] != 0:
                     errors._raise_err(errors.ERR_SOCKS_PROXY_AUTH_FAILED)
 
@@ -919,7 +920,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 + bytes([(port >> 8) & 0xff, port & 0xff])
             )
 
-            reply = await _read_exact(4)
+            reply = await self._read_exact(4)
             if len(reply) != 4 or reply[0] != 5:
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response="SOCKS connect failed")
@@ -929,17 +930,17 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response=f"SOCKS proxy connect failed (REP={rep})")
             if atyp == 1:
-                await _read_exact(4)
+                await self._read_exact(4)
             elif atyp == 4:
-                await _read_exact(16)
+                await self._read_exact(16)
             elif atyp == 3:
-                n = (await _read_exact(1))[0]
+                n = (await self._read_exact(1))[0]
                 if n:
-                    await _read_exact(n)
+                    await self._read_exact(n)
             else:
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response="SOCKS proxy returned invalid address type")
-            await _read_exact(2)
+            await self._read_exact(2)
 
         # set socket on transport
         self._transport.set_from_socket(transport, params, description,
