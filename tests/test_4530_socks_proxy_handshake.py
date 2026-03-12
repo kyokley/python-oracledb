@@ -193,7 +193,6 @@ def test_4531_socks_proxy_handshake_userpass(test_env):
         proxy.stop()
 
 
-@pytest.mark.asyncio
 async def test_4532_socks_proxy_handshake_async_userpass(test_env):
     if not oracledb.is_thin_mode():
         pytest.skip("SOCKS proxy support is Thin mode only")

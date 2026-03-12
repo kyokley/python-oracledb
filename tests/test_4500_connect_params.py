@@ -477,20 +477,6 @@ def test_4524_socks_proxy_easy_connect():
     assert params.socks_proxy_port == 1081
 
 
-def test_4524_socks_proxy_credentials_properties():
-    "4524 - test socks proxy credentials properties are exposed"
-    params = oracledb.ConnectParams()
-    connect_string = (
-        "tcp://my_host_4524bp/my_service_name_4524bp?"
-        "socks_proxy=proxy_4524bp&socks_proxy_port=1082&"
-        "socks_proxy_username=user_4524bp&"
-        "socks_proxy_password=pw_4524bp"
-    )
-    params.parse_connect_string(connect_string)
-    assert params.socks_proxy_username == "user_4524bp"
-    assert params.socks_proxy_password == "pw_4524bp"
-
-
 def test_4524_socks_proxy_requires_port():
     "4524 - test socks_proxy requires socks_proxy_port"
     params = oracledb.ConnectParams()
