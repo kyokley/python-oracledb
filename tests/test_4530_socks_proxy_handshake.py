@@ -191,3 +191,32 @@ def test_4531_socks_proxy_handshake_userpass(test_env):
         assert proxy.seen_auth is True
     finally:
         proxy.stop()
+
+
+@pytest.mark.asyncio
+async def test_4532_socks_proxy_handshake_async_userpass(test_env):
+    if not oracledb.is_thin_mode():
+        pytest.skip("SOCKS proxy support is Thin mode only")
+    proxy = Socks5TestProxy(
+        require_auth=True,
+        username="scott",
+        password="tiger",
+    )
+    proxy.start()
+    try:
+        dsn = test_env.connect_string
+        target_host, target_port = _get_host_port_from_connect_string(dsn)
+        params = test_env.get_connect_params()
+        params.set(
+            socks_proxy=proxy.host,
+            socks_proxy_port=proxy.port,
+            socks_proxy_username="scott",
+            socks_proxy_password="tiger",
+        )
+        with pytest.raises(oracledb.Error):
+            await oracledb.connect_async(dsn=dsn, params=params)
+        assert proxy.seen_connect_host == target_host
+        assert proxy.seen_connect_port == target_port
+        assert proxy.seen_auth is True
+    finally:
+        proxy.stop()

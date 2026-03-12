@@ -828,6 +828,22 @@ class ConnectParams(metaclass=BaseMetaClass):
         return [a.socks_proxy_port for a in self._impl._get_addresses()]
 
     @property
+    @_flatten_value
+    def socks_proxy_username(self) -> Union[list, str]:
+        """
+        The username to use for SOCKS5 proxy authentication.
+        """
+        return [a.socks_proxy_username for a in self._impl._get_addresses()]
+
+    @property
+    @_flatten_value
+    def socks_proxy_password(self) -> Union[list, str]:
+        """
+        The password to use for SOCKS5 proxy authentication.
+        """
+        return [a.socks_proxy_password for a in self._impl._get_addresses()]
+
+    @property
     def ssl_context(self) -> Any:
         """
         An SSLContext object used for connecting to the database using TLS.

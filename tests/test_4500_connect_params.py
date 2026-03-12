@@ -477,12 +477,35 @@ def test_4524_socks_proxy_easy_connect():
     assert params.socks_proxy_port == 1081
 
 
+def test_4524_socks_proxy_credentials_properties():
+    "4524 - test socks proxy credentials properties are exposed"
+    params = oracledb.ConnectParams()
+    connect_string = (
+        "tcp://my_host_4524bp/my_service_name_4524bp?"
+        "socks_proxy=proxy_4524bp&socks_proxy_port=1082&"
+        "socks_proxy_username=user_4524bp&"
+        "socks_proxy_password=pw_4524bp"
+    )
+    params.parse_connect_string(connect_string)
+    assert params.socks_proxy_username == "user_4524bp"
+    assert params.socks_proxy_password == "pw_4524bp"
+
+
 def test_4524_socks_proxy_requires_port():
     "4524 - test socks_proxy requires socks_proxy_port"
     params = oracledb.ConnectParams()
     with pytest.raises(oracledb.Error):
         params.parse_connect_string(
             "tcp://my_host_4524c/my_service_name_4524c?socks_proxy=proxy_4524c"
+        )
+
+
+def test_4524_socks_proxy_port_requires_host():
+    "4524 - test socks_proxy_port requires socks_proxy"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcp://my_host_4524cp/my_service_name_4524cp?socks_proxy_port=1083"
         )
 
 
@@ -504,6 +527,17 @@ def test_4524_socks_proxy_credentials_pair():
             "tcp://my_host_4524e/my_service_name_4524e?"
             "socks_proxy=proxy_4524e&socks_proxy_port=1080&"
             "socks_proxy_username=user"
+        )
+
+
+def test_4524_multiple_proxies_not_allowed():
+    "4524 - test https_proxy and socks_proxy cannot both be specified"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcps://my_host_4524f/my_service_name_4524f?"
+            "https_proxy=https_proxy_4524f&https_proxy_port=8443&"
+            "socks_proxy=socks_proxy_4524f&socks_proxy_port=1080"
         )
 
 

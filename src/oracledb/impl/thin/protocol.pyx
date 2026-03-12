@@ -672,6 +672,11 @@ cdef class BaseAsyncProtocol(BaseProtocol):
     async def _read_exact(self, num_bytes):
         """Read exactly num_bytes from the transport during connect."""
         buf = bytearray()
+        chunk = self._transport._partial_buf
+        if chunk:
+            need = num_bytes - len(buf)
+            buf.extend(chunk[:need])
+            self._transport._partial_buf = bytes(chunk[need:])
         while len(buf) < num_bytes:
             self._proxy_waiter = self._read_buf._loop.create_future()
             chunk = await self._proxy_waiter
@@ -681,7 +686,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             buf.extend(chunk[:need])
             extra = chunk[need:]
             if extra:
-                self._transport._partial_buf = bytes(extra)
+                if self._transport._partial_buf:
+                    self._transport._partial_buf += bytes(extra)
+                else:
+                    self._transport._partial_buf = bytes(extra)
         return bytes(buf)
 
     async def _close(self, BaseThinConnImpl conn_impl):
