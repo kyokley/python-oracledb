@@ -452,6 +452,81 @@ def test_4524():
     assert params.https_proxy_port == 9528
 
 
+def test_4524_socks_proxy_descriptor():
+    "4524 - test connect strings with socks_proxy defined"
+    params = oracledb.ConnectParams()
+    connect_string = """
+        (DESCRIPTION=
+        (ADDRESS=(SOCKS_PROXY=proxy_4524a)(SOCKS_PROXY_PORT=1080)
+        (PROTOCOL=TCP)(HOST=my_host4524a)(PORT=1521))
+        (CONNECT_DATA=(SERVICE_NAME=my_service_name4524a)))"""
+    params.parse_connect_string(connect_string)
+    assert params.socks_proxy == "proxy_4524a"
+    assert params.socks_proxy_port == 1080
+
+
+def test_4524_socks_proxy_easy_connect():
+    "4524 - test easy connect strings with socks_proxy defined"
+    params = oracledb.ConnectParams()
+    connect_string = (
+        "tcp://my_host_4524b/my_service_name_4524b?"
+        "socks_proxy=proxy_4524b&socks_proxy_port=1081"
+    )
+    params.parse_connect_string(connect_string)
+    assert params.socks_proxy == "proxy_4524b"
+    assert params.socks_proxy_port == 1081
+
+
+def test_4524_socks_proxy_requires_port():
+    "4524 - test socks_proxy requires socks_proxy_port"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcp://my_host_4524c/my_service_name_4524c?socks_proxy=proxy_4524c"
+        )
+
+
+def test_4524_socks_proxy_port_requires_host():
+    "4524 - test socks_proxy_port requires socks_proxy"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcp://my_host_4524cp/my_service_name_4524cp?socks_proxy_port=1083"
+        )
+
+
+def test_4524_socks_proxy_credentials_require_proxy():
+    "4524 - test socks proxy credentials require proxy"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcp://my_host_4524d/my_service_name_4524d?"
+            "socks_proxy_username=user&socks_proxy_password=pw"
+        )
+
+
+def test_4524_socks_proxy_credentials_pair():
+    "4524 - test socks proxy credentials must be paired"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcp://my_host_4524e/my_service_name_4524e?"
+            "socks_proxy=proxy_4524e&socks_proxy_port=1080&"
+            "socks_proxy_username=user"
+        )
+
+
+def test_4524_multiple_proxies_not_allowed():
+    "4524 - test https_proxy and socks_proxy cannot both be specified"
+    params = oracledb.ConnectParams()
+    with pytest.raises(oracledb.Error):
+        params.parse_connect_string(
+            "tcps://my_host_4524f/my_service_name_4524f?"
+            "https_proxy=https_proxy_4524f&https_proxy_port=8443&"
+            "socks_proxy=socks_proxy_4524f&socks_proxy_port=1080"
+        )
+
+
 def test_4525(test_env):
     "4525 - test connect strings with server_type defined"
     params = oracledb.ConnectParams()

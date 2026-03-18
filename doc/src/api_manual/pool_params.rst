@@ -16,6 +16,10 @@ PoolParams Class
     ConnectParams class, the PoolParams class also contains new parameters and
     attributes.
 
+    SOCKS5 proxy parameters (``socks_proxy``, ``socks_proxy_port``,
+    ``socks_proxy_username``, and ``socks_proxy_password``) are inherited from
+    ConnectParams and are only supported when using python-oracledb Thin mode.
+
     See :ref:`usingpoolparams` for more information.
 
     .. versionchanged:: 4.0.0

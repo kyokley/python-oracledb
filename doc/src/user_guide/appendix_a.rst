@@ -98,7 +98,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
     * - Socket Secure (SOCKS) Proxy connections
-      - No
+      - Yes - use ``socks_proxy`` and related parameters
       - No
       - No
     * - Connection mode privileges (see :ref:`connection-authorization-modes`)

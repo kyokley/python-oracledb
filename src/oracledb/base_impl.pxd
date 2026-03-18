@@ -533,6 +533,10 @@ cdef class Address(ConnectParamsNode):
         public str protocol
         public str https_proxy
         public uint32_t https_proxy_port
+        public str socks_proxy
+        public uint32_t socks_proxy_port
+        public str socks_proxy_username
+        public str socks_proxy_password
         str ip_address
         int ip_family
 

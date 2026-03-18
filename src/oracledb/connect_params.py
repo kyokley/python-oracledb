@@ -67,6 +67,10 @@ class ConnectParams(metaclass=BaseMetaClass):
         protocol: Optional[str] = None,
         https_proxy: Optional[str] = None,
         https_proxy_port: Optional[int] = None,
+        socks_proxy: Optional[str] = None,
+        socks_proxy_port: Optional[int] = None,
+        socks_proxy_username: Optional[str] = None,
+        socks_proxy_password: Optional[str] = None,
         service_name: Optional[str] = None,
         instance_name: Optional[str] = None,
         sid: Optional[str] = None,
@@ -167,6 +171,22 @@ class ConnectParams(metaclass=BaseMetaClass):
         - ``https_proxy_port``: the port on which to communicate with the proxy
           host
           (default: 0)
+
+        - ``socks_proxy``: the hostname or IP address of a SOCKS5 proxy host to
+          use for establishing connections
+          (default: None)
+
+        - ``socks_proxy_port``: the port on which to communicate with the
+          SOCKS5 proxy host
+          (default: 0)
+
+        - ``socks_proxy_username``: the username to use for SOCKS5 proxy
+          authentication
+          (default: None)
+
+        - ``socks_proxy_password``: the password to use for SOCKS5 proxy
+          authentication
+          (default: None)
 
         - ``service_name``: the service name of the database
           (default: None)
@@ -407,6 +427,8 @@ class ConnectParams(metaclass=BaseMetaClass):
             f"protocol={self.protocol!r}, "
             f"https_proxy={self.https_proxy!r}, "
             f"https_proxy_port={self.https_proxy_port!r}, "
+            f"socks_proxy={self.socks_proxy!r}, "
+            f"socks_proxy_port={self.socks_proxy_port!r}, "
             f"service_name={self.service_name!r}, "
             f"instance_name={self.instance_name!r}, "
             f"sid={self.sid!r}, "
@@ -789,6 +811,23 @@ class ConnectParams(metaclass=BaseMetaClass):
         return [d.sid for d in self._impl.description_list.children]
 
     @property
+    @_flatten_value
+    def socks_proxy(self) -> Union[list, str]:
+        """
+        The hostname or IP address of a SOCKS5 proxy host to use for
+        establishing connections.
+        """
+        return [a.socks_proxy for a in self._impl._get_addresses()]
+
+    @property
+    @_flatten_value
+    def socks_proxy_port(self) -> Union[list, int]:
+        """
+        The port on which to communicate with the SOCKS5 proxy host.
+        """
+        return [a.socks_proxy_port for a in self._impl._get_addresses()]
+
+    @property
     def ssl_context(self) -> Any:
         """
         An SSLContext object used for connecting to the database using TLS.
@@ -990,6 +1029,10 @@ class ConnectParams(metaclass=BaseMetaClass):
         protocol: Optional[str] = None,
         https_proxy: Optional[str] = None,
         https_proxy_port: Optional[int] = None,
+        socks_proxy: Optional[str] = None,
+        socks_proxy_port: Optional[int] = None,
+        socks_proxy_username: Optional[str] = None,
+        socks_proxy_password: Optional[str] = None,
         service_name: Optional[str] = None,
         instance_name: Optional[str] = None,
         sid: Optional[str] = None,
@@ -1080,6 +1123,18 @@ class ConnectParams(metaclass=BaseMetaClass):
 
         - ``https_proxy_port``: the port on which to communicate with the proxy
           host
+
+        - ``socks_proxy``: the hostname or IP address of a SOCKS5 proxy host to
+          use for establishing connections
+
+        - ``socks_proxy_port``: the port on which to communicate with the
+          SOCKS5 proxy host
+
+        - ``socks_proxy_username``: the username to use for SOCKS5 proxy
+          authentication
+
+        - ``socks_proxy_password``: the password to use for SOCKS5 proxy
+          authentication
 
         - ``service_name``: the service name of the database
 

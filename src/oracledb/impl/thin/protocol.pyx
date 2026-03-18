@@ -226,6 +226,20 @@ cdef class Protocol(BaseProtocol):
         BaseProtocol.__init__(self)
         self._request_lock = threading.Lock()
 
+    cdef bytes _read_exact(self, object sock, int num_bytes) except *:
+        """Read exactly num_bytes from the socket during connect."""
+        cdef bytearray buf = bytearray()
+        cdef bytes chunk
+        while len(buf) < num_bytes:
+            chunk = sock.recv(num_bytes - len(buf))
+            if not chunk:
+                errors._raise_err(
+                    errors.ERR_PROXY_FAILURE,
+                    response="SOCKS proxy closed connection",
+                )
+            buf.extend(chunk)
+        return bytes(buf)
+
     cdef int _close(self, BaseThinConnImpl conn_impl) except -1:
         """
         Closes the connection to the database.
@@ -379,30 +393,37 @@ cdef class Protocol(BaseProtocol):
         the target host and port is forwarded to the proxy.
         """
         cdef:
-            bint use_proxy = (address.https_proxy is not None)
+            bint use_http_proxy = (address.https_proxy is not None)
+            bint use_socks_proxy = (address.socks_proxy is not None)
             double timeout = description.tcp_connect_timeout
             bint use_tcps = (address.protocol == "tcps")
             object connect_info, sock, data, reply, m
+            bytes b
+            uint8_t ver, method, rep, atyp
+            int n
 
         # establish connection to appropriate host/port
-        if use_proxy:
+        if use_http_proxy:
             if not use_tcps:
                 errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
             connect_info = (address.https_proxy, address.https_proxy_port)
+        elif use_socks_proxy:
+            connect_info = (address.socks_proxy, address.socks_proxy_port)
         else:
             connect_info = (host, port)
             if not use_tcps and (params._token is not None
                     or params.access_token_callback is not None):
                 errors._raise_err(errors.ERR_ACCESS_TOKEN_REQUIRES_TCPS)
-        if not use_proxy and description.use_tcp_fast_open:
+        if not use_http_proxy and not use_socks_proxy \
+                and description.use_tcp_fast_open:
             sock = socket.socket(address.ip_family, socket.SOCK_STREAM)
             sock.sendto(connect_string.encode(), socket.MSG_FASTOPEN,
                         connect_info)
         else:
             sock = socket.create_connection(connect_info, timeout)
 
-        # complete connection through proxy, if applicable
-        if use_proxy:
+        # complete connection through HTTP proxy, if applicable
+        if use_http_proxy:
             data = f"CONNECT {host}:{port} HTTP/1.0\r\n\r\n"
             sock.send(data.encode())
             reply = sock.recv(1024)
@@ -410,6 +431,73 @@ cdef class Protocol(BaseProtocol):
             if m is None or m.groups()[0] != '200':
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response=reply.decode())
+
+        # complete connection through SOCKS5 proxy, if applicable
+        if use_socks_proxy:
+
+            # greeting
+            if address.socks_proxy_username is None:
+                sock.send(b"\x05\x01\x00")
+            else:
+                sock.send(b"\x05\x01\x02")
+            b = self._read_exact(sock, 2)
+            ver = b[0]
+            method = b[1]
+            if ver != 5:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS proxy returned invalid version")
+            if address.socks_proxy_username is None:
+                if method != 0:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_UNSUPPORTED_METHOD)
+            else:
+                if method != 2:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_UNSUPPORTED_METHOD)
+
+                # RFC1929 username/password auth
+                user_bytes = address.socks_proxy_username.encode("utf-8")
+                pw_bytes = address.socks_proxy_password.encode("utf-8")
+                if len(user_bytes) > 255 or len(pw_bytes) > 255:
+                    errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                      response="SOCKS credentials too long")
+                sock.send(b"\x01" + bytes([len(user_bytes)]) + user_bytes \
+                          + bytes([len(pw_bytes)]) + pw_bytes)
+                b = self._read_exact(sock, 2)
+                if b[1] != 0:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_AUTH_FAILED)
+
+            # CONNECT request (use domain name)
+            host_bytes = host.encode("idna")
+            if len(host_bytes) > 255:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS destination host too long")
+            req = b"\x05\x01\x00\x03" + bytes([len(host_bytes)]) + host_bytes \
+                + bytes([(port >> 8) & 0xff, port & 0xff])
+            sock.send(req)
+
+            # reply: VER REP RSV ATYP ...
+            b = self._read_exact(sock, 4)
+            ver = b[0]
+            rep = b[1]
+            atyp = b[3]
+            if ver != 5:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS proxy returned invalid version")
+            if rep != 0:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response=f"SOCKS proxy connect failed (REP={rep})")
+            if atyp == 1:
+                n = 4
+            elif atyp == 4:
+                n = 16
+            elif atyp == 3:
+                b = self._read_exact(sock, 1)
+                n = b[0]
+            else:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS proxy returned invalid address type")
+            if n:
+                self._read_exact(sock, n)
+            self._read_exact(sock, 2)
 
         # set socket on transport
         self._transport.set_from_socket(sock, params, description, address)
@@ -581,6 +669,29 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         self._request_lock = asyncio.Lock()
         self._transport._is_async = True
 
+    async def _read_exact(self, num_bytes):
+        """Read exactly num_bytes from the transport during connect."""
+        buf = bytearray()
+        chunk = self._transport._partial_buf
+        if chunk:
+            need = num_bytes - len(buf)
+            buf.extend(chunk[:need])
+            self._transport._partial_buf = bytes(chunk[need:])
+        while len(buf) < num_bytes:
+            self._proxy_waiter = self._read_buf._loop.create_future()
+            chunk = await self._proxy_waiter
+            if not chunk:
+                break
+            need = num_bytes - len(buf)
+            buf.extend(chunk[:need])
+            extra = chunk[need:]
+            if extra:
+                if self._transport._partial_buf:
+                    self._transport._partial_buf += bytes(extra)
+                else:
+                    self._transport._partial_buf = bytes(extra)
+        return bytes(buf)
+
     async def _close(self, BaseThinConnImpl conn_impl):
         """
         Closes the connection to the database.
@@ -734,7 +845,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         the target host and port is forwarded to the proxy.
         """
         cdef:
-            bint use_proxy = (address.https_proxy is not None)
+            bint use_http_proxy = (address.https_proxy is not None)
+            bint use_socks_proxy = (address.socks_proxy is not None)
             double timeout = description.tcp_connect_timeout
             bint use_tcps = (address.protocol == "tcps")
             object connect_info, data, reply, m
@@ -742,11 +854,14 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             int connect_port
 
         # establish connection to appropriate host/port
-        if use_proxy:
+        if use_http_proxy:
             if not use_tcps:
                 errors._raise_err(errors.ERR_HTTPS_PROXY_REQUIRES_TCPS)
             connect_host = address.https_proxy
             connect_port = address.https_proxy_port
+        elif use_socks_proxy:
+            connect_host = address.socks_proxy
+            connect_port = address.socks_proxy_port
         else:
             connect_host = host
             connect_port = port
@@ -759,8 +874,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             connect_port
         )
 
-        # complete connection through proxy, if applicable
-        if use_proxy:
+        # complete connection through HTTP proxy, if applicable
+        if use_http_proxy:
             self._proxy_waiter = self._read_buf._loop.create_future()
             data = f"CONNECT {host}:{port} HTTP/1.0\r\n\r\n"
             transport.write(data.encode())
@@ -769,6 +884,71 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if m is None or m.groups()[0] != '200':
                 errors._raise_err(errors.ERR_PROXY_FAILURE,
                                   response=reply.decode())
+
+        # complete connection through SOCKS5 proxy, if applicable
+        if use_socks_proxy:
+
+            # greeting
+            if address.socks_proxy_username is None:
+                transport.write(b"\x05\x01\x00")
+            else:
+                transport.write(b"\x05\x01\x02")
+            reply = await self._read_exact(2)
+            if len(reply) != 2 or reply[0] != 5:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS greeting failed")
+            if address.socks_proxy_username is None:
+                if reply[1] != 0:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_UNSUPPORTED_METHOD)
+            else:
+                if reply[1] != 2:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_UNSUPPORTED_METHOD)
+
+                # RFC1929 username/password auth
+                user_bytes = address.socks_proxy_username.encode("utf-8")
+                pw_bytes = address.socks_proxy_password.encode("utf-8")
+                if len(user_bytes) > 255 or len(pw_bytes) > 255:
+                    errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                      response="SOCKS credentials too long")
+                transport.write(
+                    b"\x01" + bytes([len(user_bytes)]) + user_bytes
+                    + bytes([len(pw_bytes)]) + pw_bytes
+                )
+                reply = await self._read_exact(2)
+                if len(reply) != 2 or reply[1] != 0:
+                    errors._raise_err(errors.ERR_SOCKS_PROXY_AUTH_FAILED)
+
+            # CONNECT request
+            host_bytes = host.encode("idna")
+            if len(host_bytes) > 255:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS destination host too long")
+            transport.write(
+                b"\x05\x01\x00\x03" + bytes([len(host_bytes)]) + host_bytes
+                + bytes([(port >> 8) & 0xff, port & 0xff])
+            )
+
+            reply = await self._read_exact(4)
+            if len(reply) != 4 or reply[0] != 5:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS connect failed")
+            rep = reply[1]
+            atyp = reply[3]
+            if rep != 0:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response=f"SOCKS proxy connect failed (REP={rep})")
+            if atyp == 1:
+                await self._read_exact(4)
+            elif atyp == 4:
+                await self._read_exact(16)
+            elif atyp == 3:
+                n = (await self._read_exact(1))[0]
+                if n:
+                    await self._read_exact(n)
+            else:
+                errors._raise_err(errors.ERR_PROXY_FAILURE,
+                                  response="SOCKS proxy returned invalid address type")
+            await self._read_exact(2)
 
         # set socket on transport
         self._transport.set_from_socket(transport, params, description,

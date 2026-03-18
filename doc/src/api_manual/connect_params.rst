@@ -193,6 +193,14 @@ All properties are read only.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
+.. autoproperty:: ConnectParams.socks_proxy
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+.. autoproperty:: ConnectParams.socks_proxy_port
+
+    This attribute is only supported in python-oracledb Thin mode.
+
 .. autoproperty:: ConnectParams.instance_name
 
     This attribute is supported in both python-oracledb Thin and Thick modes.

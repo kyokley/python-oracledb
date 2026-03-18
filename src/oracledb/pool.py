@@ -658,6 +658,10 @@ def create_pool(
     protocol: Optional[str] = None,
     https_proxy: Optional[str] = None,
     https_proxy_port: Optional[int] = None,
+    socks_proxy: Optional[str] = None,
+    socks_proxy_port: Optional[int] = None,
+    socks_proxy_username: Optional[str] = None,
+    socks_proxy_password: Optional[str] = None,
     service_name: Optional[str] = None,
     instance_name: Optional[str] = None,
     sid: Optional[str] = None,
@@ -852,6 +856,22 @@ def create_pool(
     - ``https_proxy_port``: the port on which to communicate with the proxy
       host
       (default: 0)
+
+    - ``socks_proxy``: the hostname or IP address of a SOCKS5 proxy host to use
+      for establishing connections
+      (default: None)
+
+    - ``socks_proxy_port``: the port on which to communicate with the SOCKS5
+      proxy host
+      (default: 0)
+
+    - ``socks_proxy_username``: the username to use for SOCKS5 proxy
+      authentication
+      (default: None)
+
+    - ``socks_proxy_password``: the password to use for SOCKS5 proxy
+      authentication
+      (default: None)
 
     - ``service_name``: the service name of the database
       (default: None)
@@ -1256,6 +1276,10 @@ def create_pool_async(
     protocol: Optional[str] = None,
     https_proxy: Optional[str] = None,
     https_proxy_port: Optional[int] = None,
+    socks_proxy: Optional[str] = None,
+    socks_proxy_port: Optional[int] = None,
+    socks_proxy_username: Optional[str] = None,
+    socks_proxy_password: Optional[str] = None,
     service_name: Optional[str] = None,
     instance_name: Optional[str] = None,
     sid: Optional[str] = None,
@@ -1450,6 +1474,22 @@ def create_pool_async(
     - ``https_proxy_port``: the port on which to communicate with the proxy
       host
       (default: 0)
+
+    - ``socks_proxy``: the hostname or IP address of a SOCKS5 proxy host to use
+      for establishing connections
+      (default: None)
+
+    - ``socks_proxy_port``: the port on which to communicate with the SOCKS5
+      proxy host
+      (default: 0)
+
+    - ``socks_proxy_username``: the username to use for SOCKS5 proxy
+      authentication
+      (default: None)
+
+    - ``socks_proxy_password``: the password to use for SOCKS5 proxy
+      authentication
+      (default: None)
 
     - ``service_name``: the service name of the database
       (default: None)

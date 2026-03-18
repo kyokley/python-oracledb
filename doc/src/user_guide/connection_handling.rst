@@ -4121,8 +4121,13 @@ port parameters available in your :ref:`connection string <connstr>`.
 
       mydb_low = (description=
                    (address=
-                     (https_proxy=myproxy.example.com)(https_proxy_port=80)
-                     (protocol=tcps)(port=1522)(host= . . . )
+                      (https_proxy=myproxy.example.com)(https_proxy_port=80)
+                      (protocol=tcps)(port=1522)(host= . . . )
+
+In python-oracledb Thin mode, you can also connect through a SOCKS5 proxy by
+using the parameters ``socks_proxy`` and ``socks_proxy_port`` (and optionally
+``socks_proxy_username`` and ``socks_proxy_password``). SOCKS5 proxy support is
+not available in python-oracledb Thick mode.
 
 **In python-oracledb Thick mode**
 

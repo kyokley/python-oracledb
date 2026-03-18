@@ -633,6 +633,8 @@ cdef class Address(ConnectParamsNode):
         ConnectParamsNode.__init__(self, False)
         self.protocol = DEFAULT_PROTOCOL
         self.port = DEFAULT_PORT
+        self.https_proxy_port = 0
+        self.socks_proxy_port = 0
 
     cdef str build_connect_string(self):
         """
@@ -647,6 +649,18 @@ cdef class Address(ConnectParamsNode):
                 parts.append(f"(HTTPS_PROXY={self.https_proxy})")
             if self.https_proxy_port != 0:
                 parts.append(f"(HTTPS_PROXY_PORT={self.https_proxy_port})")
+            if self.socks_proxy is not None:
+                parts.append(f"(SOCKS_PROXY={self.socks_proxy})")
+            if self.socks_proxy_port != 0:
+                parts.append(f"(SOCKS_PROXY_PORT={self.socks_proxy_port})")
+            if self.socks_proxy_username is not None:
+                parts.append(
+                    f"(SOCKS_PROXY_USERNAME={self.socks_proxy_username})"
+                )
+            if self.socks_proxy_password is not None:
+                parts.append(
+                    f"(SOCKS_PROXY_PASSWORD={self.socks_proxy_password})"
+                )
             return f'(ADDRESS={"".join(parts)})'
 
     def copy(self):
@@ -660,6 +674,10 @@ cdef class Address(ConnectParamsNode):
         address.protocol = self.protocol
         address.https_proxy = self.https_proxy
         address.https_proxy_port = self.https_proxy_port
+        address.socks_proxy = self.socks_proxy
+        address.socks_proxy_port = self.socks_proxy_port
+        address.socks_proxy_username = self.socks_proxy_username
+        address.socks_proxy_password = self.socks_proxy_password
         return address
 
     @classmethod
@@ -684,7 +702,7 @@ cdef class Address(ConnectParamsNode):
             list results = []
             Address address
             object info
-        if self.https_proxy is not None:
+        if self.https_proxy is not None or self.socks_proxy is not None:
             self.ip_address = self.host
             return [self]
         for info in socket.getaddrinfo(self.host, self.port,
@@ -708,6 +726,26 @@ cdef class Address(ConnectParamsNode):
             self.set_protocol(protocol)
         _set_str_param(args, "https_proxy", self)
         _set_uint_param(args, "https_proxy_port", &self.https_proxy_port)
+        _set_str_param(args, "socks_proxy", self)
+        _set_uint_param(args, "socks_proxy_port", &self.socks_proxy_port)
+        _set_str_param(args, "socks_proxy_username", self)
+        _set_str_param(args, "socks_proxy_password", self)
+
+        # validate proxy configuration
+        if self.https_proxy is not None and self.socks_proxy is not None:
+            errors._raise_err(errors.ERR_MULTIPLE_PROXIES)
+        if self.socks_proxy is not None:
+            if self.socks_proxy_port == 0:
+                errors._raise_err(errors.ERR_SOCKS_PROXY_PORT_REQUIRED)
+        elif self.socks_proxy_port != 0:
+            errors._raise_err(errors.ERR_SOCKS_PROXY_MISSING_HOST)
+        if self.socks_proxy_username is not None \
+                or self.socks_proxy_password is not None:
+            if self.socks_proxy is None:
+                errors._raise_err(errors.ERR_SOCKS_PROXY_CREDENTIALS_REQUIRE_PROXY)
+            if self.socks_proxy_username is None \
+                    or self.socks_proxy_password is None:
+                errors._raise_err(errors.ERR_SOCKS_PROXY_CREDENTIALS_INCOMPLETE)
 
     cdef int set_protocol(self, str value) except -1:
         """
