@@ -37,7 +37,7 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
     Converts the value stored in Arrow format to an OracleData structure.
     """
     cdef:
-        int64_t int_value, days, seconds, useconds, offset
+        int64_t int_value, days, seconds, useconds
         SparseVectorImpl sparse_impl
         uint32_t db_type_num
         ArrowType arrow_type
@@ -47,10 +47,6 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         bytes temp_bytes
         ssize_t buf_len
         char buf[21]
-
-    # adjust array_index by the offset, to allow for array slices
-    array_impl.get_offset(&offset)
-    array_index += offset
 
     arrow_type = metadata._schema_impl.arrow_type
     db_type_num = metadata.dbtype.num
@@ -101,7 +97,9 @@ cdef object convert_arrow_to_oracle_data(OracleMetadata metadata,
         array_impl.get_bool(array_index, &data.is_null, &data.buffer.as_bool)
     elif arrow_type in (
             NANOARROW_TYPE_BINARY,
+            NANOARROW_TYPE_BINARY_VIEW,
             NANOARROW_TYPE_STRING,
+            NANOARROW_TYPE_STRING_VIEW,
             NANOARROW_TYPE_FIXED_SIZE_BINARY,
             NANOARROW_TYPE_LARGE_BINARY,
             NANOARROW_TYPE_LARGE_STRING

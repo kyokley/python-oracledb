@@ -43,9 +43,9 @@ Common Changes
 #)  Added support for storing and retrieving secrets (:func:`save_secret()` and
     :func:`get_secret()`), either globally or by using thread local storage,
     which prevents the secret from being revealed in memory dumps.
-#)  Added attribute :attr:`ConnectParams.on_connect_callback` which is invoked
-    when a standalone connection is created or a connection is acquired from a
-    connection pool.
+#)  Added attribute :attr:`ConnectParams.on_connect_callback` which can be set
+    to a callable that is invoked when a standalone connection is created or a
+    connection is acquired from a connection pool.
 #)  Improved :ref:`cloud native authentication <tokenauth>` plugins.
 
     - Added Session Token-based authentication support to the OCI Tokens
@@ -56,6 +56,11 @@ Common Changes
       will simply be ignored.
     - Removed unnecessary validation calls in the OCI Tokens plugin.
 
+#)  Added support for inserting data frames containing binary views (format
+    "vb") and string views (format "vu")
+    (`issue 573 <https://github.com/oracle/python-oracledb/issues/573>`__).
+#)  Added support for compiling with HP aCC
+    (`issue 556 <https://github.com/oracle/python-oracledb/issues/556>`__).
 #)  Fixed bug when inserting data frames that are views of other data frames
     (`issue 574 <https://github.com/oracle/python-oracledb/issues/574>`__).
 #)  Updated the `Jupyter notebook samples <https://github.com/oracle/
